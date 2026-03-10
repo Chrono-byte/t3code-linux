@@ -224,7 +224,7 @@ const BuildEnvConfig = Config.all({
   ),
   skipAppImageAppstreamValidation: Config.boolean(
     "T3CODE_DESKTOP_SKIP_APPIMAGE_APPSTREAM_VALIDATION",
-  ).pipe(Config.withDefault(true)),
+  ).pipe(Config.withDefault(false)),
   skipBuild: Config.boolean("T3CODE_DESKTOP_SKIP_BUILD").pipe(Config.withDefault(false)),
   keepStage: Config.boolean("T3CODE_DESKTOP_KEEP_STAGE").pipe(Config.withDefault(false)),
   signed: Config.boolean("T3CODE_DESKTOP_SIGNED").pipe(Config.withDefault(false)),

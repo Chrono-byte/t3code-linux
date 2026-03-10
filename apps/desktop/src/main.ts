@@ -596,7 +596,13 @@ function resolveResourcePath(fileName: string): string | null {
   return null;
 }
 
+let cachedAppImageIconPath: string | null | undefined;
+
 function resolveAppImageIconPath(): string | null {
+  if (cachedAppImageIconPath !== undefined) {
+    return cachedAppImageIconPath;
+  }
+
   const executablePath = Path.resolve(process.execPath);
   const executableDir = Path.dirname(executablePath);
   const executableBase = Path.basename(executablePath, Path.extname(executablePath));
@@ -664,10 +670,12 @@ function resolveAppImageIconPath(): string | null {
   const uniqueCandidates = [...new Set(candidates)];
   for (const candidate of uniqueCandidates) {
     if (FS.existsSync(candidate)) {
+      cachedAppImageIconPath = candidate;
       return candidate;
     }
   }
 
+  cachedAppImageIconPath = null;
   return null;
 }
 

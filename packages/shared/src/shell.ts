@@ -43,9 +43,20 @@ export function defaultShellCandidates(): string[] {
   );
 }
 
+type ShellPathResolveErrorReporter = (shell: string, error: unknown) => void;
+
+const defaultShellPathErrorReporter: ShellPathResolveErrorReporter | undefined =
+  process.env.T3CODE_DEBUG_SHELL_PATH === "1"
+    ? (shell, error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`[shell] PATH resolution failed for ${shell}: ${message}`);
+      }
+    : undefined;
+
 export function resolvePathFromLoginShells(
   shells: ReadonlyArray<string>,
   execFile: ExecFileSyncLike = execFileSync,
+  onError: ShellPathResolveErrorReporter | undefined = defaultShellPathErrorReporter,
 ): string | undefined {
   for (const shell of shells) {
     try {
@@ -53,7 +64,8 @@ export function resolvePathFromLoginShells(
       if (result) {
         return result;
       }
-    } catch {
+    } catch (error) {
+      onError?.(shell, error);
       // Try next shell candidate.
     }
   }
