@@ -1509,16 +1509,6 @@ function normalizeProviderThreadId(value: string | undefined): string | undefine
   return brandIfNonEmpty(value, (normalized) => normalized);
 }
 
-function expandHomeRelativePath(input: string): string {
-  if (input === "~") {
-    return OS.homedir();
-  }
-  if (input.startsWith("~/") || input.startsWith("~\\")) {
-    return path.join(OS.homedir(), input.slice(2));
-  }
-  return input;
-}
-
 function readCodexProviderOptions(input: CodexAppServerStartSessionInput): {
   readonly binaryPath?: string;
   readonly homePath?: string;
@@ -1528,8 +1518,8 @@ function readCodexProviderOptions(input: CodexAppServerStartSessionInput): {
     return {};
   }
   return {
-    ...(options.binaryPath ? { binaryPath: expandHomeRelativePath(options.binaryPath) } : {}),
-    ...(options.homePath ? { homePath: expandHomeRelativePath(options.homePath) } : {}),
+    ...(options.binaryPath ? { binaryPath: options.binaryPath } : {}),
+    ...(options.homePath ? { homePath: options.homePath } : {}),
   };
 }
 
