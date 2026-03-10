@@ -1,7 +1,11 @@
-import { defaultShellCandidates, resolvePathFromLoginShells } from "@t3tools/shared/shell";
+import {
+  defaultShellCandidates,
+  resolvePathFromLoginShells,
+  shouldRepairPath,
+} from "@t3tools/shared/shell";
 
 export function fixPath(): void {
-  if (process.platform !== "darwin" && process.platform !== "linux") return;
+  if (!shouldRepairPath()) return;
 
   const result = resolvePathFromLoginShells(defaultShellCandidates());
   if (result) {

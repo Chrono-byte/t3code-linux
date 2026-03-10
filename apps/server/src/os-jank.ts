@@ -1,13 +1,15 @@
 import * as OS from "node:os";
 import { Effect, Path } from "effect";
-import { defaultShellCandidates, resolvePathFromLoginShells } from "@t3tools/shared/shell";
+import {
+  defaultShellCandidates,
+  resolvePathFromLoginShells,
+  shouldRepairPath,
+} from "@t3tools/shared/shell";
 
 export function fixPath(): void {
-  if (process.platform !== "darwin" && process.platform !== "linux") return;
+  if (!shouldRepairPath()) return;
 
-  const shells = defaultShellCandidates();
-
-  const resolvedPath = resolvePathFromLoginShells(shells);
+  const resolvedPath = resolvePathFromLoginShells(defaultShellCandidates());
   if (resolvedPath) {
     process.env.PATH = resolvedPath;
   }
