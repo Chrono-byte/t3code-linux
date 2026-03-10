@@ -113,7 +113,7 @@ describe("readPathFromLoginShell", () => {
 
       const result = resolvePathFromLoginShells(["/bin/zsh", "/bin/bash"], execFile);
       expect(result).toBeUndefined();
-      expect(execFile).toHaveBeenCalledTimes(2);
+      expect(execFile).toHaveBeenCalledTimes(4);
     });
   });
 });
