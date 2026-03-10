@@ -612,46 +612,60 @@ function resolveAppImageIconPath(): string | null {
     "t3-code-desktop",
   ];
   const iconSizes = ["1024x1024", "512x512", "256x256", "128x128", "64x64", "48x48", "32x32"];
-  const appImageRoots = [
-    Path.resolve(process.resourcesPath, ".."),
-    Path.resolve(process.resourcesPath),
-    executableDir,
-  ];
+
+  const appImageRoots: string[] = [];
+  const seenRoots = new Set<string>();
+  const pushRoot = (root: string) => {
+    if (!seenRoots.has(root)) {
+      seenRoots.add(root);
+      appImageRoots.push(root);
+    }
+  };
+
+  pushRoot(Path.resolve(process.resourcesPath, ".."));
+  pushRoot(Path.resolve(process.resourcesPath));
+  pushRoot(executableDir);
 
   if (process.env.APPDIR) {
-    appImageRoots.push(Path.resolve(process.env.APPDIR));
+    pushRoot(Path.resolve(process.env.APPDIR));
   }
 
   if (process.env.APPIMAGE) {
-    appImageRoots.push(
-      Path.resolve(process.env.APPIMAGE),
-      Path.resolve(process.env.APPIMAGE, ".."),
-    );
+    pushRoot(Path.resolve(process.env.APPIMAGE));
+    pushRoot(Path.resolve(process.env.APPIMAGE, ".."));
   }
 
-  const candidates: string[] = [];
+  const triedCandidates = new Set<string>();
+  const tryCandidate = (candidate: string): string | null => {
+    if (triedCandidates.has(candidate)) {
+      return null;
+    }
+    triedCandidates.add(candidate);
+    if (FS.existsSync(candidate)) {
+      cachedAppImageIconPath = candidate;
+      return candidate;
+    }
+    return null;
+  };
+
+  for (const root of appImageRoots) {
+    const candidate = tryCandidate(Path.join(root, ".DirIcon"));
+    if (candidate) {
+      return candidate;
+    }
+  }
 
   for (const iconBaseName of iconBaseNames) {
-    const baseCandidates = appImageRoots.flatMap((root) => [
-      Path.join(root, `${iconBaseName}.png`),
-      Path.join(root, ".DirIcon"),
-      Path.join(
-        root,
-        "usr",
-        "share",
-        "icons",
-        "hicolor",
-        "1024x1024",
-        "apps",
-        `${iconBaseName}.png`,
-      ),
-    ]);
-
-    candidates.push(...baseCandidates);
+    for (const root of appImageRoots) {
+      const candidate = tryCandidate(Path.join(root, `${iconBaseName}.png`));
+      if (candidate) {
+        return candidate;
+      }
+    }
 
     for (const iconSize of iconSizes) {
       for (const root of appImageRoots) {
-        candidates.push(
+        const candidate = tryCandidate(
           Path.join(
             root,
             "usr",
@@ -663,15 +677,10 @@ function resolveAppImageIconPath(): string | null {
             `${iconBaseName}.png`,
           ),
         );
+        if (candidate) {
+          return candidate;
+        }
       }
-    }
-  }
-
-  const uniqueCandidates = [...new Set(candidates)];
-  for (const candidate of uniqueCandidates) {
-    if (FS.existsSync(candidate)) {
-      cachedAppImageIconPath = candidate;
-      return candidate;
     }
   }
 

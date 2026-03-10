@@ -1,4 +1,4 @@
-import OS from "node:os";
+import * as OS from "node:os";
 import { Effect, Path } from "effect";
 import { defaultShellCandidates, resolvePathFromLoginShells } from "@t3tools/shared/shell";
 
