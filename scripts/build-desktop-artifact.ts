@@ -566,7 +566,7 @@ const resolveBuildOptions = Effect.fn("resolveBuildOptions")(function* (input: B
   const appImageUpdateRepository = mergeOptions(
     input.appImageUpdateRepository,
     env.appImageUpdateRepository,
-    process.env.GITHUB_REPOSITORY?.trim() ?? resolveAppImageUpdateRepositoryFromGit(repoRoot),
+    process.env.GITHUB_REPOSITORY?.trim() || resolveAppImageUpdateRepositoryFromGit(repoRoot),
   );
   const appImageUpdateInformation = mergeOptions(
     input.appImageUpdateInformation,
