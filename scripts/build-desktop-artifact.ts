@@ -3,7 +3,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { basename, join } from "node:path";
-import path from "node:path";
 
 import rootPackageJson from "../package.json" with { type: "json" };
 import desktopPackageJson from "../apps/desktop/package.json" with { type: "json" };

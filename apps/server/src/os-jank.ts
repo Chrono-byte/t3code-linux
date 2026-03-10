@@ -3,7 +3,7 @@ import { Effect, Path } from "effect";
 import { defaultShellCandidates, resolvePathFromLoginShells } from "@t3tools/shared/shell";
 
 export function fixPath(): void {
-  if (process.platform === "win32") return;
+  if (process.platform !== "darwin" && process.platform !== "linux") return;
 
   const shells = defaultShellCandidates();
 

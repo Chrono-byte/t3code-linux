@@ -38,16 +38,10 @@ export function readPathFromLoginShell(
 }
 
 export function defaultShellCandidates(): string[] {
-  return [
-    process.env.SHELL,
-    "/bin/zsh",
-    "/usr/bin/zsh",
-    "/bin/bash",
-    "/usr/bin/bash",
-  ].filter((shell): shell is string => typeof shell === "string" && shell.trim().length > 0);
+  return [process.env.SHELL, "/bin/zsh", "/usr/bin/zsh", "/bin/bash", "/usr/bin/bash"].filter(
+    (shell): shell is string => typeof shell === "string" && shell.trim().length > 0,
+  );
 }
-
-
 
 export function resolvePathFromLoginShells(
   shells: ReadonlyArray<string>,
