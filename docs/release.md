@@ -10,10 +10,11 @@ This document covers the unified release workflow for stable and nightly desktop
   - scheduled nightly at `09:00 UTC`
   - manual `workflow_dispatch` for either channel
 - Runs quality gates first: lint, typecheck, test.
-- Builds four artifacts in parallel for both channels:
+- Builds five artifacts in parallel for both channels:
   - macOS `arm64` DMG
   - macOS `x64` DMG
   - Linux `x64` AppImage
+  - Linux `x64` RPM
   - Windows `x64` NSIS installer
 - Publishes one GitHub Release with all produced files.
   - Stable tags with a suffix after `X.Y.Z` (for example `1.2.3-alpha.1`) are published as GitHub prereleases.
@@ -60,6 +61,9 @@ This document covers the unified release workflow for stable and nightly desktop
   - platform installers (`.exe`, `.dmg`, `.AppImage`, plus macOS `.zip` for Squirrel.Mac update payloads)
   - channel metadata: `latest*.yml` for stable releases, `nightly*.yml` for nightly releases
   - `*.blockmap` files (used for differential downloads)
+- Linux packaging note:
+  - AppImage remains the only Linux artifact wired into the current auto-update flow.
+  - RPM is published as an installable release artifact for RPM-based distros.
 - macOS metadata note:
   - `electron-updater` reads `latest-mac.yml` on stable and `nightly-mac.yml` on nightly, for both Intel and Apple Silicon.
   - The workflow merges the per-arch mac manifests into one channel-specific mac manifest before publishing the GitHub Release.
@@ -94,7 +98,7 @@ Use this first to validate the release pipeline.
    - `git push origin v0.0.0-test.1`
 3. Wait for `.github/workflows/release.yml` to finish.
 4. Verify the GitHub Release contains all platform artifacts.
-5. Download each artifact and sanity-check installation on each OS.
+5. Download each artifact and sanity-check installation on each OS, including RPM install/launch on an RPM-based Linux distro.
 
 ## 2) Apple signing + notarization setup (macOS)
 

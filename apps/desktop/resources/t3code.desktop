@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=T3 Code (Alpha)
+Comment=T3 Code desktop build
+Exec=t3code %U
+Terminal=false
+Type=Application
+Icon=t3code
+StartupWMClass=t3code
+Categories=Development;
