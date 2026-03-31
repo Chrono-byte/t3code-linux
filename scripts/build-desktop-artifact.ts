@@ -241,7 +241,7 @@ const PROJECT_HOMEPAGE =
     : "https://github.com/pingdotgg/t3code";
 const PROJECT_AUTHOR = {
   name: "T3 Tools",
-  email: "opensource@users.noreply.github.com",
+  email: "t3code@users.noreply.github.com",
 } as const;
 const LINUX_DESKTOP_FILE_RELATIVE_PATH = "apps/desktop/resources/t3code.desktop";
 
