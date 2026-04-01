@@ -698,11 +698,13 @@ const createBuildConfig = Effect.fn("createBuildConfig")(function* (
     buildConfig.linux = {
       target: [target],
       executableName: "t3code",
-      icon: "icons",
+      icon: "icon.png",
       category: "Development",
-      maintainer: `${PROJECT_AUTHOR.name} <${PROJECT_AUTHOR.email}>`,
-      vendor: PROJECT_AUTHOR.name,
-      desktop: linuxDesktopFile,
+      desktop: {
+        entry: {
+          StartupWMClass: "t3code",
+        },
+      },
     };
   }
 
