@@ -229,11 +229,6 @@ interface StagePackageJson {
   readonly overrides: Record<string, unknown>;
 }
 
-interface LinuxDesktopFileConfig {
-  readonly entry: Record<string, string>;
-  readonly desktopActions: Record<string, Record<string, string>>;
-}
-
 const PROJECT_HOMEPAGE =
   typeof serverPackageJson.repository === "object" &&
   typeof serverPackageJson.repository?.url === "string"
@@ -243,7 +238,6 @@ const PROJECT_AUTHOR = {
   name: "T3 Tools",
   email: "t3code@users.noreply.github.com",
 } as const;
-const LINUX_DESKTOP_FILE_RELATIVE_PATH = "apps/desktop/resources/t3code.desktop";
 
 const AzureTrustedSigningOptionsConfig = Config.all({
   publisherName: Config.string("AZURE_TRUSTED_SIGNING_PUBLISHER_NAME"),
@@ -477,76 +471,6 @@ function stageWindowsIcons(stageResourcesDir: string, sourceIco: string) {
   });
 }
 
-const loadLinuxDesktopFileConfig = Effect.fn("loadLinuxDesktopFileConfig")(function* () {
-  const fs = yield* FileSystem.FileSystem;
-  const path = yield* Path.Path;
-  const repoRoot = yield* RepoRoot;
-  const desktopFilePath = path.join(repoRoot, LINUX_DESKTOP_FILE_RELATIVE_PATH);
-
-  if (!(yield* fs.exists(desktopFilePath))) {
-    return yield* new BuildScriptError({
-      message: `Linux desktop file is missing at ${desktopFilePath}`,
-    });
-  }
-
-  const desktopFile = yield* fs.readFileString(desktopFilePath);
-  let currentSection: "desktop" | `action:${string}` | null = null;
-  const entry: Record<string, string> = {};
-  const desktopActions: Record<string, Record<string, string>> = {};
-
-  for (const rawLine of desktopFile.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (line.length === 0 || line.startsWith("#")) continue;
-
-    const sectionMatch = /^\[(.+)\]$/.exec(line);
-    if (sectionMatch) {
-      const sectionName = sectionMatch[1] ?? "";
-      if (sectionName === "Desktop Entry") {
-        currentSection = "desktop";
-      } else if (sectionName.startsWith("Desktop Action ")) {
-        const actionName = sectionName.slice("Desktop Action ".length).trim();
-        currentSection = actionName ? `action:${actionName}` : null;
-        if (actionName) {
-          desktopActions[actionName] ??= {};
-        }
-      } else {
-        currentSection = null;
-      }
-      continue;
-    }
-
-    const separatorIndex = line.indexOf("=");
-    if (separatorIndex === -1 || currentSection === null) continue;
-
-    const key = line.slice(0, separatorIndex).trim();
-    const value = line.slice(separatorIndex + 1).trim();
-    if (!key) continue;
-
-    if (currentSection === "desktop") {
-      entry[key] = value;
-      continue;
-    }
-
-    const actionName = currentSection.slice("action:".length);
-    desktopActions[actionName] ??= {};
-    desktopActions[actionName][key] = value;
-  }
-
-  if (Object.keys(entry).length === 0) {
-    return yield* new BuildScriptError({
-      message: `Linux desktop file at ${desktopFilePath} does not define a [Desktop Entry] section.`,
-    });
-  }
-
-  // electron-builder requires linux.executableName to control Exec generation.
-  delete entry.Exec;
-
-  return {
-    entry,
-    desktopActions,
-  } satisfies LinuxDesktopFileConfig;
-});
-
 function validateBundledClientAssets(clientDir: string) {
   return Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
@@ -694,7 +618,6 @@ const createBuildConfig = Effect.fn("createBuildConfig")(function* (
   }
 
   if (platform === "linux") {
-    const linuxDesktopFile = yield* loadLinuxDesktopFileConfig();
     buildConfig.linux = {
       target: [target],
       executableName: "t3code",
@@ -873,7 +796,7 @@ const buildDesktopArtifact = Effect.fn("buildDesktopArtifact")(function* (
     options.verbose,
   );
 
-  // Preserve staged desktop resources for packaged Linux builds, including AppImage and RPM.
+  // electron-builder is filtering out stageResourcesDir directory in the AppImage for production
   yield* fs.copy(stageResourcesDir, path.join(stageAppDir, "apps/desktop/prod-resources"));
   const stageBunTmpDir = path.join(stageRoot, ".bun-tmp");
   const stageBunInstallDir = path.join(stageRoot, ".bun-install");
@@ -1005,7 +928,7 @@ const buildDesktopArtifactCli = Command.make("build-desktop-artifact", {
   ),
   target: Flag.string("target").pipe(
     Flag.withDescription(
-      "Artifact target, for example dmg/AppImage/rpm/nsis (env: T3CODE_DESKTOP_TARGET).",
+      "Artifact target, for example dmg/AppImage/nsis (env: T3CODE_DESKTOP_TARGET).",
     ),
     Flag.optional,
   ),
