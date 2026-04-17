@@ -38,6 +38,7 @@ await waitForResources({
 
 const childEnv = { ...process.env };
 delete childEnv.ELECTRON_RUN_AS_NODE;
+const linuxClassArg = process.platform === "linux" ? ["--class=t3code-dev"] : [];
 
 let shuttingDown = false;
 let restartTimer = null;
