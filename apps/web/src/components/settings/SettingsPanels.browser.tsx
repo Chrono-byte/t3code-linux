@@ -23,9 +23,20 @@ import { resetServerStateForTests, setServerConfigSnapshot } from "../../rpc/ser
 import { ConnectionsSettings } from "./ConnectionsSettings";
 import { GeneralSettingsPanel } from "./SettingsPanels";
 
-vi.mock("../../env", () => ({
-  isElectron: true,
-}));
+vi.mock("../../env", () => {
+  // Export a runtime getter for `isElectron` so tests that don't provide a
+  // QueryClientProvider can keep rendering the simpler AboutVersionTitle,
+  // while tests that set up a desktop bridge/nativeApi will exercise the
+  // full AboutVersionSection which calls `useQueryClient()`.
+  return {
+    get isElectron() {
+      return (
+        typeof window !== "undefined" &&
+        (window.desktopBridge !== undefined || window.nativeApi !== undefined)
+      );
+    },
+  };
+});
 
 const authAccessHarness = vi.hoisted(() => {
   type Snapshot = AuthAccessSnapshot;
