@@ -1,8 +1,7 @@
 /**
  * Remote open-in-editor: when this client is not on the environment's
- * machine, "Open" must hand the OS a `vscode://vscode-remote/ssh-remote+…`
- * deep link (local editor connects over SSH) instead of exec'ing an editor
- * on the environment host.
+ * machine, "Open" must hand the OS an editor-specific deep link so the local
+ * editor connects over SSH instead of exec'ing on the environment host.
  *
  * Host precedence: a desktop-SSH environment's real `~/.ssh/config` alias
  * beats server-advertised names; among advertised names the tailnet MagicDNS
@@ -108,9 +107,10 @@ export function useRemoteOpenState(environmentId: EnvironmentId | null): RemoteO
 
 /**
  * Editors offered in remote-link mode. The desktop app probes the machine the
- * renderer runs on; a browser cannot, so it offers VS Code only.
+ * renderer runs on; a browser cannot, so it offers the common SSH-capable
+ * editors and lets the OS resolve their protocol handlers.
  */
-const REMOTE_FALLBACK_EDITORS: ReadonlyArray<EditorId> = ["vscode"];
+const REMOTE_FALLBACK_EDITORS: ReadonlyArray<EditorId> = ["vscode", "zed"];
 
 let cachedProbedEditors: ReadonlyArray<EditorId> | null = null;
 

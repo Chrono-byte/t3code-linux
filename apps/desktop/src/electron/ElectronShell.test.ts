@@ -52,6 +52,22 @@ describe("ElectronShell", () => {
     }).pipe(Effect.provide(ElectronShell.layer)),
   );
 
+  it.effect("opens Zed SSH editor URLs", () =>
+    Effect.gen(function* () {
+      openExternalMock.mockResolvedValue(undefined);
+
+      const electronShell = yield* ElectronShell.ElectronShell;
+      const result = yield* electronShell.openExternal(
+        "zed://ssh/example.com/home/user/my%20project",
+      );
+
+      assert.equal(result, true);
+      assert.deepEqual(openExternalMock.mock.calls, [
+        ["zed://ssh/example.com/home/user/my%20project"],
+      ]);
+    }).pipe(Effect.provide(ElectronShell.layer)),
+  );
+
   it.effect("does not open remote editor URLs with userinfo", () =>
     Effect.gen(function* () {
       openExternalMock.mockResolvedValue(undefined);
@@ -91,6 +107,26 @@ describe("ElectronShell", () => {
       );
 
       assert.equal(result, false);
+      assert.equal(openExternalMock.mock.calls.length, 0);
+    }).pipe(Effect.provide(ElectronShell.layer)),
+  );
+
+  it.effect("does not open malformed Zed SSH editor URLs", () =>
+    Effect.gen(function* () {
+      openExternalMock.mockResolvedValue(undefined);
+
+      const electronShell = yield* ElectronShell.ElectronShell;
+      const results = yield* Effect.all([
+        electronShell.openExternal("zed://user@ssh/example.com/home/user/project"),
+        electronShell.openExternal("zed://:secret@ssh/example.com/home/user/project"),
+        electronShell.openExternal("zed://extensions/install/something"),
+        electronShell.openExternal("zed://ssh/"),
+        electronShell.openExternal("zed://ssh/example.com"),
+        electronShell.openExternal("zed://ssh/example.com/project?command=attacker"),
+        electronShell.openExternal("zed://ssh/example.com/project#attacker"),
+      ]);
+
+      assert.deepEqual(results, [false, false, false, false, false, false, false]);
       assert.equal(openExternalMock.mock.calls.length, 0);
     }).pipe(Effect.provide(ElectronShell.layer)),
   );

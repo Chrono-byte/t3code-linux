@@ -4,7 +4,7 @@ import {
   RelayConnectionTarget,
   SshConnectionTarget,
 } from "@t3tools/client-runtime/connection";
-import { buildRemoteOpenUrl, EnvironmentId } from "@t3tools/contracts";
+import { buildRemoteOpenUrl, EnvironmentId, REMOTE_CAPABLE_EDITOR_IDS } from "@t3tools/contracts";
 import { describe, expect, it } from "vite-plus/test";
 
 import { resolveRemoteOpenState } from "./remoteOpen";
@@ -119,6 +119,11 @@ describe("resolveRemoteOpenState", () => {
 });
 
 describe("buildRemoteOpenUrl", () => {
+  it("derives Zed remote capability from the editor catalog", () => {
+    expect(REMOTE_CAPABLE_EDITOR_IDS).toContain("zed");
+    expect(REMOTE_CAPABLE_EDITOR_IDS).not.toContain("trae");
+  });
+
   it("builds a vscode-remote deep link", () => {
     expect(
       buildRemoteOpenUrl({
@@ -141,8 +146,20 @@ describe("buildRemoteOpenUrl", () => {
     ).toBe("vscode://vscode-remote/ssh-remote+sol/C%3A/Users/theo");
   });
 
+  it("builds a Zed SSH deep link", () => {
+    expect(
+      buildRemoteOpenUrl({ editor: "zed", host: "sol", absolutePath: "/tmp/my project" }),
+    ).toBe("zed://ssh/sol/tmp/my%20project");
+  });
+
+  it("normalizes Windows paths for Zed", () => {
+    expect(
+      buildRemoteOpenUrl({ editor: "zed", host: "sol", absolutePath: "C:\\Users\\theo" }),
+    ).toBe("zed://ssh/sol/C%3A/Users/theo");
+  });
+
   it("returns undefined for editors without remote support", () => {
-    expect(buildRemoteOpenUrl({ editor: "zed", host: "sol", absolutePath: "/tmp/x" })).toBe(
+    expect(buildRemoteOpenUrl({ editor: "trae", host: "sol", absolutePath: "/tmp/x" })).toBe(
       undefined,
     );
   });
